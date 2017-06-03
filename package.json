@@ -1,0 +1,29 @@
+{
+  "name": "tsql",
+  "version": "1.0.0",
+  "description": "Tagged template literals for tedious",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "repository": "https://github.com/litek/tsql.git",
+  "author": "Ketil Albertsen",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf lib",
+    "test": "mocha -r ts-node/register src/test/*_test.ts",
+    "prepublish": "tsc"
+  },
+  "dependencies": {
+    "@types/tedious": "^1.8.29",
+    "@types/tedious-connection-pool": "^1.0.1",
+    "tedious-connection-pool": "^1.0.5"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.0.0",
+    "@types/mocha": "^2.2.41",
+    "chai": "^4.0.1",
+    "mocha": "^3.4.2",
+    "ts-node": "^3.0.4",
+    "typescript": "^2.3.4"
+  }
+}
