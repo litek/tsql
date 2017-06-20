@@ -1,4 +1,4 @@
-export interface ITsql {
+export interface IAdapter {
   query<T>(text: string, params: {}): Promise<T[]>
   query<T>(text: TemplateStringsArray, ...params: {}[]): Promise<T[]>
   query<T>(query: IQuery): Promise<T[]>

@@ -2,12 +2,12 @@ import * as url from 'url'
 import * as tds from 'tedious'
 import * as pool from 'tedious-connection-pool'
 import {Pool} from './pool'
-import {ITsql, IQuery} from './'
+import {IAdapter, IQuery} from './'
 
 /**
  * Connection wrapper
  */
-export class Connection implements ITsql {
+export class Connection implements IAdapter {
   readonly config: tds.ConnectionConfig
   readonly pool?: Pool
 
@@ -92,7 +92,7 @@ export class Connection implements ITsql {
 
     } else {
       if (paramsArray.length) {
-        throw new Error('A query object cannot be combined with a parameter object')
+        throw new Error('A query object cannot be combined with other arguments')
       }
 
       query = (input as IQuery).text

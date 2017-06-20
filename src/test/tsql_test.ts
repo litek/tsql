@@ -7,7 +7,7 @@ describe('tsql', function() {
 
   beforeEach(function() {
     pool && pool.drain()
-    pool = new Pool('mssql://sa@192.168.0.22/F0001', {min: 1, max: 2})
+    pool = new Pool(process.env.DATABASE_URL || 'mssql://sa@127.0.0.1/F0001', {min: 1, max: 2})
   })
 
   it('acquires pooled connection', async function() {

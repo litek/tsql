@@ -1,12 +1,12 @@
 import * as tds from 'tedious'
 import * as pool from 'tedious-connection-pool'
 import {Connection} from './connection'
-import {ITsql, IQuery} from './'
+import {IAdapter, IQuery} from './'
 
 /**
  * Pooled connection handler
  */
-export class Pool implements ITsql {
+export class Pool implements IAdapter {
   readonly config: tds.ConnectionConfig
   readonly options: pool.PoolConfig
   readonly pool: pool
