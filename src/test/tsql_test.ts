@@ -60,4 +60,17 @@ describe('tsql', function() {
     let three = await pool.acquire()
     expect(timer).be.true
   })
+
+  it('parses connection strings', function() {
+    let config = {userName: 'user', password: 'pass', server: 'hostname'}
+    let options = {database: 'database', port: null, connectTimeout: 5000, requestTimeout: 5000}
+
+    expect(Connection.config('mssql://user:pass@hostname/database')).eqls({
+      ...config, options: {...options, instanceName: undefined}
+    })
+
+    expect(Connection.config('mssql://user:pass@hostname/instance/database')).eqls({
+      ...config, options: {...options, instanceName: 'instance'}
+    })
+  })
 })

@@ -156,16 +156,16 @@ export class Connection implements IAdapter {
     if (typeof(config) === 'string') {
       let parts = url.parse(config)
       let [userName, password] = (parts.auth || '').split(':')
-      let [instanceName, database] = (parts.pathname || '').slice(1).split('/')
+      let [a, b] = (parts.pathname || '').slice(1).split('/')
 
       config = {
         userName,
         password,
         server: parts.hostname,
         options: {
-          database,
+          database: b || a,
           port: parts.port,
-          instanceName
+          instanceName: b ? a : undefined
         }
       } as tds.ConnectionConfig
     } else {
