@@ -156,7 +156,7 @@ export class Connection implements IAdapter {
     if (typeof(config) === 'string') {
       let parts = url.parse(config)
       let [userName, password] = (parts.auth || '').split(':')
-      let [database, instanceName] = (parts.pathname || '').slice(1).split('/')
+      let [instanceName, database] = (parts.pathname || '').slice(1).split('/')
 
       config = {
         userName,
