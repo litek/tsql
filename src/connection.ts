@@ -1,3 +1,4 @@
+import * as assert from 'assert'
 import * as url from 'url'
 import * as qs from 'querystring'
 import * as tds from 'tedious'
@@ -21,10 +22,10 @@ export class Connection implements IAdapter {
     // don't use instanceof in case of conflicting tedious versions
     if (typeof(init) === 'object' && init.constructor.name === 'Connection') {
       this.config = (init as any).config
-      this.connection = Promise.resolve(init)
+      this.connection = Promise.resolve(init as tds.Connection)
       this.pool = pool
     } else {
-      this.config = Connection.config(init)
+      this.config = Connection.config(init as IConfig)
     }
   }
 
@@ -176,6 +177,26 @@ export class Connection implements IAdapter {
         reject(err)
       })
     })
+  }
+
+  /**
+   * Simple insert helper
+   */
+  insert(table: string, rows: any[]) {
+    let keys = Object.keys(rows[0] || {})
+    assert(rows.length, 'No rows to insert')
+    assert(keys.length, 'No object columns in rows')
+
+    let params: any[] = []
+    let values = rows.map(row => {
+      return keys.map(key => {
+        params.push(row[key])
+        return '@' + params.length
+      }).join(',')
+    })
+
+    let sql = `INSERT INTO [${table}] ([${keys.join('],[')}]) VALUES(${values.join('),(')})`
+    return this.query(sql, params)
   }
 
   /**

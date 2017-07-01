@@ -97,4 +97,13 @@ export class Pool implements IAdapter {
 
     return rows
   }
+
+  /**
+   * Simple insert wrapper
+   */
+  async insert(table: string, rows: any[]) {
+    let connection = await this.acquire()
+    await connection.insert(table, rows)
+    connection.close()
+  }
 }
