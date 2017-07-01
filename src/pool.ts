@@ -1,7 +1,7 @@
 import * as tds from 'tedious'
 import * as pool from 'tedious-connection-pool'
 import {Connection} from './connection'
-import {IAdapter, IQuery} from './'
+import {IAdapter, IConfig, IQuery} from './'
 
 /**
  * Pooled connection handler
@@ -14,7 +14,7 @@ export class Pool implements IAdapter {
   /**
    * Create new connection pool
    */
-  constructor(config: string | tds.ConnectionConfig, options: pool.PoolConfig = {}) {
+  constructor(config: IConfig, options: pool.PoolConfig = {}) {
     this.config = Connection.config(config)
     this.options = Object.assign({
       min: 1,

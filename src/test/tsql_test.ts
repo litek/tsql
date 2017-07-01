@@ -65,8 +65,8 @@ describe('tsql', function() {
     let config = {userName: 'user', password: 'pass', server: 'hostname'}
     let options = {database: 'database', port: null, connectTimeout: 5000, requestTimeout: 5000}
 
-    expect(Connection.config('mssql://user:pass@hostname/database')).eqls({
-      ...config, options: {...options, instanceName: undefined}
+    expect(Connection.config('mssql://user:pass@hostname/database?encrypt')).eqls({
+      ...config, options: {...options, encrypt: true, instanceName: undefined}
     })
 
     expect(Connection.config('mssql://user:pass@hostname/instance/database')).eqls({

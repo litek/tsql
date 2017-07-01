@@ -1,8 +1,9 @@
 import * as url from 'url'
+import * as qs from 'querystring'
 import * as tds from 'tedious'
 import * as pool from 'tedious-connection-pool'
 import {Pool} from './pool'
-import {IAdapter, IQuery} from './'
+import {IAdapter, IConfig, IQuery} from './'
 
 /**
  * Connection wrapper
@@ -59,6 +60,8 @@ export class Connection implements IAdapter {
         ;(connection as pool.PooledConnection).release()
 
       } else {
+        connection.close()
+        
         return new Promise<void>(function(resolve) {
           connection.on('end', function() {
             resolve()
@@ -66,6 +69,32 @@ export class Connection implements IAdapter {
         })
       }
     }
+  }
+
+  /**
+   * Begin transaction
+   */
+  async begin(name?: string, isolationLevel?: tds.ISOLATION_LEVEL) {
+    let connection = await this.connect()
+
+    return new Promise<void>(function(resolve, reject) {
+      connection.beginTransaction(function(err) {
+        err ? reject(err) : resolve()
+      }, name, isolationLevel)
+    })
+  }
+
+  /**
+   * Commit transaction
+   */
+  async commit() {
+    let connection = await this.connect()
+
+    return new Promise<void>(function(resolve, reject) {
+      connection!.commitTransaction(function(err) {
+        err ? reject(err) : resolve()
+      })
+    })
   }
 
   /**
@@ -129,7 +158,7 @@ export class Connection implements IAdapter {
           break
           case 'object':
             if (value === null) {
-              type = tds.TYPES.Null
+              value = ''
             } else if (value instanceof Date) {
               type = tds.TYPES.DateTime
               value = value.toISOString()
@@ -152,11 +181,18 @@ export class Connection implements IAdapter {
   /**
    * Parse connection string and set defaults
    */
-  static config(config: string | tds.ConnectionConfig): tds.ConnectionConfig {
+  static config(config: IConfig): tds.ConnectionConfig {
     if (typeof(config) === 'string') {
       let parts = url.parse(config)
       let [userName, password] = (parts.auth || '').split(':')
       let [a, b] = (parts.pathname || '').slice(1).split('/')
+      let query = qs.parse(parts.query || '')
+
+      Object.keys(query).forEach(key => {
+        if (query[key] === '') {
+          query[key] = true
+        }
+      })
 
       config = {
         userName,
@@ -165,7 +201,8 @@ export class Connection implements IAdapter {
         options: {
           database: b || a,
           port: parts.port,
-          instanceName: b ? a : undefined
+          instanceName: b ? a : undefined,
+          ...query
         }
       } as tds.ConnectionConfig
     } else {
