@@ -18,14 +18,14 @@ export class Connection implements IAdapter {
   /**
    * Create new connection
    */
-  constructor(init: string | tds.ConnectionConfig | tds.Connection, pool?: Pool) {
+  constructor(init?: string | tds.ConnectionConfig | tds.Connection, pool?: Pool) {
     // don't use instanceof in case of conflicting tedious versions
     if (typeof(init) === 'object' && init.constructor.name === 'Connection') {
       this.config = (init as any).config
       this.connection = Promise.resolve(init as tds.Connection)
       this.pool = pool
     } else {
-      this.config = Connection.config(init as IConfig)
+      this.config = Connection.config((init || process.env.DATABASE_URL) as IConfig)
     }
   }
 
@@ -38,9 +38,12 @@ export class Connection implements IAdapter {
         throw new Error('Underlying connection has been returned to pool')
       }
 
+      let noDeprecation = Connection.noDeprecation()
+      let connection = new tds.Connection(this.config)
+
       this.connection = new Promise<tds.Connection>((resolve, reject) => {
-        let connection = new tds.Connection(this.config)
         connection.on('connect', function(err?: Error) {
+          noDeprecation()
           err ? reject(err) : resolve(connection)
         })
       })
@@ -99,6 +102,21 @@ export class Connection implements IAdapter {
   }
 
   /**
+   * Grab JSON values
+   */
+  async json<T = any>(input: string | TemplateStringsArray | IQuery, ...paramsArray: any[]) {
+    let data: any[] = await this.query.apply(this, arguments)
+
+    if (data.length) {
+      let col = Object.keys(data[0]).pop()!
+      let json = data.map(obj => obj[col]).join('')
+      return JSON.parse(json)
+    } else {
+      return []
+    }
+  }
+
+  /**
    * Execute query function or tagged template
    */
   query<T = any>(input: string | TemplateStringsArray | IQuery, ...paramsArray: any[]) {
@@ -119,6 +137,14 @@ export class Connection implements IAdapter {
 
       query = input
       params = paramsArray[0] || params
+
+      if (params instanceof Array) {
+        let values = params
+        params = {}
+        values.forEach(function(param, idx) {
+          params[idx+1] = param
+        })
+      }
 
     } else {
       if (paramsArray.length) {
@@ -155,16 +181,19 @@ export class Connection implements IAdapter {
             value = Number(value)
           break
           case 'number':
-            type = /^\d+$/.test(value) ? tds.TYPES.Int : tds.TYPES.Float
+            if (Math.abs(value) < Math.pow(2, 31)) {
+              type = /^\d+$/.test(value) ? tds.TYPES.Int : tds.TYPES.Float
+            }
           break
           case 'object':
             if (value === null) {
               value = ''
             } else if (value instanceof Date) {
               type = tds.TYPES.DateTime
-              value = value.toISOString()
+              // value = value.toISOString()
+            } else {
+              value = JSON.stringify(value)
             }
-          break
         }
 
         request.addParameter(key, type, value)
@@ -180,29 +209,11 @@ export class Connection implements IAdapter {
   }
 
   /**
-   * Simple insert helper
-   */
-  insert(table: string, rows: any[]) {
-    let keys = Object.keys(rows[0] || {})
-    assert(rows.length, 'No rows to insert')
-    assert(keys.length, 'No object columns in rows')
-
-    let params: any[] = []
-    let values = rows.map(row => {
-      return keys.map(key => {
-        params.push(row[key])
-        return '@' + params.length
-      }).join(',')
-    })
-
-    let sql = `INSERT INTO [${table}] ([${keys.join('],[')}]) VALUES(${values.join('),(')})`
-    return this.query(sql, params)
-  }
-
-  /**
    * Parse connection string and set defaults
    */
   static config(config: IConfig): tds.ConnectionConfig {
+    assert(config, 'No connection configuration assigned')
+
     if (typeof(config) === 'string') {
       let parts = url.parse(config)
       let [userName, password] = (parts.auth || '').split(':')
@@ -235,5 +246,25 @@ export class Connection implements IAdapter {
     options.requestTimeout = options.requestTimeout || 5000
 
     return config
+  }
+
+  /**
+   * Disable deprecation warnings
+   * https://github.com/tediousjs/tedious/issues/515
+   */
+  static noDeprecationFlag?: boolean
+
+  static noDeprecation() {
+    if (typeof(Connection.noDeprecationFlag) === 'undefined') {
+      let proc = process as any
+      Connection.noDeprecationFlag = proc.noDeprecation || false
+      proc.noDeprecation = true
+
+      return function() {
+        proc.noDeprecation = Connection.noDeprecationFlag
+      }
+    } else {
+      return function() {}
+    }
   }
 }

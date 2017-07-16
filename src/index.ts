@@ -4,6 +4,10 @@ export interface IAdapter {
   query<T>(text: string, params: {}): Promise<T[]>
   query<T>(text: TemplateStringsArray, ...params: {}[]): Promise<T[]>
   query<T>(query: IQuery): Promise<T[]>
+  json<T>(text: string, params: {}): Promise<T[]>
+  json<T>(text: TemplateStringsArray, ...params: {}[]): Promise<T[]>
+  json<T>(query: IQuery): Promise<T[]>
+  close(): void
 }
 
 export interface IQuery {

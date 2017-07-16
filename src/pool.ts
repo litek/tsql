@@ -11,11 +11,13 @@ export class Pool implements IAdapter {
   readonly options: pool.PoolConfig
   readonly pool: pool
 
+  protected initialized = false
+
   /**
    * Create new connection pool
    */
-  constructor(config: IConfig, options: pool.PoolConfig = {}) {
-    this.config = Connection.config(config)
+  constructor(config?: IConfig, options: pool.PoolConfig = {}) {
+    this.config = Connection.config(config || process.env.DATABASE_URL || '')
     this.options = Object.assign({
       min: 1,
       max: 10,
@@ -46,9 +48,11 @@ export class Pool implements IAdapter {
   acquire() {
     return new Promise<Connection>((resolve, reject) => {
       let listener = this.error()
+      let noDeprecation = Connection.noDeprecation()
 
       this.pool.acquire((err, res) => {
         let perr = listener()
+        noDeprecation()
 
         if (err) {
           reject(perr || err)
@@ -76,7 +80,7 @@ export class Pool implements IAdapter {
   /**
    * Drain connections from pool
    */
-  drain() {
+  close() {
     this.pool.drain()
   }
 
@@ -88,6 +92,17 @@ export class Pool implements IAdapter {
   }
 
   /**
+   * Run JSON and release connection
+   */
+  async json<T = any>(text: string | TemplateStringsArray | IQuery, ...paramsArray: any[]) {
+    let connection = await this.acquire()
+    let rows = await connection.json<T>(text, ...paramsArray)
+    connection.close()
+
+    return rows
+  }
+
+  /**
    * Run query and release connection
    */
   async query<T = any>(text: string | TemplateStringsArray | IQuery, ...paramsArray: any[]) {
@@ -96,14 +111,5 @@ export class Pool implements IAdapter {
     connection.close()
 
     return rows
-  }
-
-  /**
-   * Simple insert wrapper
-   */
-  async insert(table: string, rows: any[]) {
-    let connection = await this.acquire()
-    await connection.insert(table, rows)
-    connection.close()
   }
 }

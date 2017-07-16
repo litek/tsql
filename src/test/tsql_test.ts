@@ -6,7 +6,7 @@ describe('tsql', function() {
   this.timeout(6500)
 
   beforeEach(function() {
-    pool && pool.drain()
+    pool && pool.close()
     pool = new Pool(process.env.DATABASE_URL || 'mssql://sa@127.0.0.1/F0001', {min: 1, max: 2})
   })
 
@@ -72,5 +72,32 @@ describe('tsql', function() {
     expect(Connection.config('mssql://user:pass@hostname/instance/database')).eqls({
       ...config, options: {...options, instanceName: 'instance'}
     })
+  })
+
+  it('supports json output', async function() {
+    let res = await pool.json`
+      with
+        books as (select 1 as id, 'Book #1' as title union select 2 as id ,'Book #2'),
+        author as (select 1 as id, 'Frank' as name)
+      select author.id, author.name, (select id, title from books for json path) books
+      from author for json path
+    `
+
+    expect(res).eqls([
+      {
+        id: 1,
+        name: 'Frank',
+        books: [
+          {
+            id: 1,
+            title: 'Book #1'
+          },
+          {
+            id: 2,
+            title: 'Book #2'
+          }
+        ]
+      }
+    ])
   })
 })
