@@ -23,7 +23,9 @@ const init = function() {
 }
 
 process.on('unhandledRejection', (err: Error) => {
-  console.log('Error: ' + err.message)
+  console.error('Error: ' + err.message)
+  console.log()
+  console.log(err)
   process.exit(1)
 })
 
