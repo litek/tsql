@@ -4,12 +4,12 @@ import * as qs from 'querystring'
 import * as tds from 'tedious'
 import * as pool from 'tedious-connection-pool'
 import {Pool} from './pool'
-import {IAdapter, IConfig, IQuery} from './'
+import {Adapter, IConfig, Query} from './'
 
 /**
  * Connection wrapper
  */
-export class Connection implements IAdapter {
+export class Connection implements Adapter {
   readonly config: tds.ConnectionConfig
   readonly pool?: Pool
 
@@ -104,7 +104,7 @@ export class Connection implements IAdapter {
   /**
    * Grab JSON values
    */
-  async json<T = any>(input: string | TemplateStringsArray | IQuery, ...paramsArray: any[]) {
+  async json<T = any>(input: string | TemplateStringsArray | Query, ...paramsArray: any[]) {
     let data: any[] = await this.query.apply(this, arguments)
 
     if (data.length) {
@@ -119,7 +119,7 @@ export class Connection implements IAdapter {
   /**
    * Execute query function or tagged template
    */
-  query<T = any>(input: string | TemplateStringsArray | IQuery, ...paramsArray: any[]) {
+  query<T = any>(input: string | TemplateStringsArray | Query, ...paramsArray: any[]) {
     let params: any = {}
     let query: string
 
@@ -151,8 +151,8 @@ export class Connection implements IAdapter {
         throw new Error('A query object cannot be combined with other arguments')
       }
 
-      query = (input as IQuery).text
-      ;(input as IQuery).values.forEach(function(param, idx) {
+      query = (input as Query).text
+      ;(input as Query).values.forEach(function(param, idx) {
         params[idx+1] = param
       })
     }

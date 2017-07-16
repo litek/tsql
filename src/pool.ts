@@ -1,12 +1,12 @@
 import * as tds from 'tedious'
 import * as pool from 'tedious-connection-pool'
 import {Connection} from './connection'
-import {IAdapter, IConfig, IQuery} from './'
+import {Adapter, IConfig, Query} from './'
 
 /**
  * Pooled connection handler
  */
-export class Pool implements IAdapter {
+export class Pool implements Adapter {
   readonly config: tds.ConnectionConfig
   readonly options: pool.PoolConfig
   readonly pool: pool
@@ -94,7 +94,7 @@ export class Pool implements IAdapter {
   /**
    * Run JSON and release connection
    */
-  async json<T = any>(text: string | TemplateStringsArray | IQuery, ...paramsArray: any[]) {
+  async json<T = any>(text: string | TemplateStringsArray | Query, ...paramsArray: any[]) {
     let connection = await this.acquire()
     let rows = await connection.json<T>(text, ...paramsArray)
     connection.close()
@@ -105,7 +105,7 @@ export class Pool implements IAdapter {
   /**
    * Run query and release connection
    */
-  async query<T = any>(text: string | TemplateStringsArray | IQuery, ...paramsArray: any[]) {
+  async query<T = any>(text: string | TemplateStringsArray | Query, ...paramsArray: any[]) {
     let connection = await this.acquire()
     let rows = await connection.query<T>(text, ...paramsArray)
     connection.close()

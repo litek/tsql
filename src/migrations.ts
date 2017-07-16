@@ -1,6 +1,6 @@
 import * as path from 'path'
 import * as fs from 'fs'
-import {IMigration, IConfig, Connection} from '.'
+import {Migration, IConfig, Connection} from '.'
 
 export class Migrations {
   public db: Connection
@@ -69,7 +69,7 @@ export class Migrations {
    * List available migrations
    */
   async list() {
-    return new Promise<IMigration[]>((resolve, reject) => {
+    return new Promise<Migration[]>((resolve, reject) => {
       fs.readdir(this.dir, (err, files) => {
         if (err) return reject(err)
 
@@ -80,7 +80,7 @@ export class Migrations {
             let id = Number(filename.slice(0, 14))
             let name = path.basename(filename, path.extname(filename)).slice(15)
 
-            return <IMigration>{
+            return <Migration>{
               id,
               name,
               up: fn.up,

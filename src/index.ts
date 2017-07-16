@@ -1,25 +1,21 @@
 import {ConnectionConfig} from 'tedious'
 
-export interface IAdapter {
-  query<T>(text: string, params: {}): Promise<T[]>
-  query<T>(text: TemplateStringsArray, ...params: {}[]): Promise<T[]>
-  query<T>(query: IQuery): Promise<T[]>
-  json<T>(text: string, params: {}): Promise<T[]>
-  json<T>(text: TemplateStringsArray, ...params: {}[]): Promise<T[]>
-  json<T>(query: IQuery): Promise<T[]>
+export interface Adapter {
+  query(...params: any[]): Promise<any[]>
+  json(...params: any[]): Promise<any[]>
   close(): void
 }
 
-export interface IQuery {
+export interface Query {
   text: string
   values: any[]
 }
 
-export interface IMigration {
+export interface Migration {
   id: number
   name: string
-  up: (db: IAdapter) => any
-  down: (db: IAdapter) => any
+  up: (db: Adapter) => any
+  down: (db: Adapter) => any
 }
 
 export type IConfig = ConnectionConfig | string

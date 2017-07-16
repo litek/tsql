@@ -1,6 +1,6 @@
 {
   "name": "tsql",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Tagged template literals for tedious",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
@@ -19,14 +19,14 @@
     "@types/tedious": "^1.8.29",
     "@types/tedious-connection-pool": "^1.0.1",
     "commander": "^2.10.0",
-    "tedious-connection-pool": "^1.0.5"
+    "tedious-connection-pool": "^1.0.5",
+    "ts-node": "^3.1.0"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
     "@types/mocha": "^2.2.41",
     "chai": "^4.0.1",
     "mocha": "^3.4.2",
-    "ts-node": "^3.1.0",
     "typescript": "2.4"
   }
 }
