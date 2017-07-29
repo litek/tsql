@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Mocha Tests",
+      "cwd": "${workspaceRoot}",
+      "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/mocha",
+      "runtimeArgs": [
+        "--no-timeouts",
+        "--colors",
+        "--compilers", "ts:ts-node/register",
+        "${workspaceRoot}/src/test/*_test.ts"
+      ],
+      "protocol": "inspector",
+      "sourceMaps": true,
+      "outFiles": ["${workspaceRoot}/.ts-node/**"]
+    }
+  ]
+}

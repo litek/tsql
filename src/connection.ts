@@ -187,7 +187,7 @@ export class Connection implements Adapter {
           break
           case 'object':
             if (value === null) {
-              value = ''
+              type = tds.TYPES.Int
             } else if (value instanceof Date) {
               type = tds.TYPES.DateTime
               // value = value.toISOString()

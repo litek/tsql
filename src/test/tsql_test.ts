@@ -100,4 +100,42 @@ describe('tsql', function() {
       }
     ])
   })
+
+  it('pool throws errors', function(done) {
+    pool.query('SELECT *')
+      .then(
+        () => { done(new Error('Expected to throw')) },
+        err => done()
+      )
+  })
+
+  it('pooled connection throws errors', function(done) {
+    pool.acquire()
+      .then(db => db.query('SELECT *'))
+      .then(
+        () => { done(new Error('Expected to throw')) },
+        err => done()
+      )
+  })
+
+  it('unpooled connection throws errors', function(done) {
+    let db = new Connection(process.env.DATABASE_URL || 'mssql://sa@127.0.0.1/F0001')
+
+    db.connect()
+      .then(() => db.query('SELECT *'))
+      .then(
+        () => { done(new Error('Expected to throw')) },
+        err => done()
+      )
+  })
+
+  it('inserts null', async function() {
+    let db = new Connection(process.env.DATABASE_URL || 'mssql://sa@127.0.0.1/F0001')
+
+    await db.begin()
+    await db.query('CREATE TABLE tmp_tsql_test (a nvarchar, b tinyint)')
+    await db.query('INSERT INTO tmp_tsql_test VALUES(@1, @2)', {1: null, 2: null})
+    await db.query('DROP TABLE tmp_tsql_test')
+    await db.commit()
+  })
 })
